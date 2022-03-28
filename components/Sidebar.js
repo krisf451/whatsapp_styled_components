@@ -4,10 +4,29 @@ import ChatIcon from "@mui/icons-material/Chat";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
 import * as EmailValidator from "email-validator";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
+import { collection, query, where, addDoc } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useCollection } from "react-firebase-hooks/firestore";
+import Chat from "./Chat";
 
 function Sidebar() {
+  const [user] = useAuthState(auth);
+
+  const q = query(
+    collection(db, "chats"),
+    where("users", "array-contains", user.email)
+  );
+  const [chatsSnapshot] = useCollection(q);
+
+  // getDocs(q).then((querySnapshot) => {
+  //   querySnapshot.forEach((doc) => {
+  //     // doc.data() is never undefined for query doc snapshots
+  //     console.log(doc.id, " => ", doc.data());
+  //   });
+  // });
+
   const createChat = () => {
     const input = prompt(
       "Please enter an email address for the user you wish to chat with"
@@ -15,10 +34,24 @@ function Sidebar() {
 
     if (!input) return null;
 
-    if (EmailValidator.validate(input)) {
+    if (
+      EmailValidator.validate(input) &&
+      !chatAlreadyExists(input) &&
+      input !== user.email
+    ) {
       //We need to add the chat into the DB 'chats' collection
+      addDoc(collection(db, "chats"), {
+        users: [user.email, input],
+      });
     }
   };
+
+  const chatAlreadyExists = (recipientEmail) =>
+    !!chatsSnapshot?.docs.find(
+      (chat) =>
+        chat.data().users.find((user) => user === recipientEmail)?.length > 0
+    );
+
   return (
     <Container>
       <Header>
@@ -38,6 +71,9 @@ function Sidebar() {
       </Search>
       <SidebarButton onClick={createChat}>Start a new chat</SidebarButton>
       {/* List of chats */}
+      {chatsSnapshot?.docs.map((chat) => (
+        <Chat key={chat.id} id={chat.id} user={chat.data().users} />
+      ))}
     </Container>
   );
 }
