@@ -4,6 +4,8 @@ import ChatIcon from "@mui/icons-material/Chat";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
 import * as EmailValidator from "email-validator";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 function Sidebar() {
   const createChat = () => {
@@ -13,14 +15,14 @@ function Sidebar() {
 
     if (!input) return null;
 
-    if (emailValidator.validate(input)) {
+    if (EmailValidator.validate(input)) {
       //We need to add the chat into the DB 'chats' collection
     }
   };
   return (
     <Container>
       <Header>
-        <UserAvatar />
+        <UserAvatar onClick={() => signOut(auth)} />
         <IconsContainer>
           <IconButton>
             <ChatIcon />
