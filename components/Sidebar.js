@@ -13,19 +13,12 @@ import Chat from "./Chat";
 
 function Sidebar() {
   const [user] = useAuthState(auth);
-
+  console.log(user);
   const q = query(
     collection(db, "chats"),
     where("users", "array-contains", user.email)
   );
   const [chatsSnapshot] = useCollection(q);
-
-  // getDocs(q).then((querySnapshot) => {
-  //   querySnapshot.forEach((doc) => {
-  //     // doc.data() is never undefined for query doc snapshots
-  //     console.log(doc.id, " => ", doc.data());
-  //   });
-  // });
 
   const createChat = () => {
     const input = prompt(
@@ -55,7 +48,7 @@ function Sidebar() {
   return (
     <Container>
       <Header>
-        <UserAvatar onClick={() => signOut(auth)} />
+        <UserAvatar src={user.photoURL} onClick={() => signOut(auth)} />
         <IconsContainer>
           <IconButton>
             <ChatIcon />
@@ -72,7 +65,7 @@ function Sidebar() {
       <SidebarButton onClick={createChat}>Start a new chat</SidebarButton>
       {/* List of chats */}
       {chatsSnapshot?.docs.map((chat) => (
-        <Chat key={chat.id} id={chat.id} user={chat.data().users} />
+        <Chat key={chat.id} id={chat.id} users={chat.data().users} />
       ))}
     </Container>
   );
@@ -117,7 +110,6 @@ const UserAvatar = styled(Avatar)`
   cursor: pointer;
   :hover {
     transform: scale(1.1);
-
     opacity: 0.8;
   }
 `;
