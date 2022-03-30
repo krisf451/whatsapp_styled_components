@@ -13,7 +13,6 @@ import Chat from "./Chat";
 
 function Sidebar() {
   const [user] = useAuthState(auth);
-  console.log(user);
   const q = query(
     collection(db, "chats"),
     where("users", "array-contains", user.email)
