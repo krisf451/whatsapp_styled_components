@@ -3,21 +3,18 @@ import { Avatar, IconButton, Button } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
-import * as EmailValidator from "email-validator";
-import { auth, db } from "../firebase";
-import { signOut } from "firebase/auth";
-import { collection, query, where, addDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { db, auth } from "../firebase";
+import * as EmailValidator from "email-validator";
 import Chat from "./Chat";
 
 function Sidebar() {
   const [user] = useAuthState(auth);
-  const q = query(
-    collection(db, "chats"),
-    where("users", "array-contains", user.email)
-  );
-  const [chatsSnapshot] = useCollection(q);
+  const userChatRef = db
+    .collection("chats")
+    .where("users", "array-contains", user.email);
+  const [chatsSnapshot] = useCollection(userChatRef);
 
   const createChat = () => {
     const input = prompt(
@@ -31,8 +28,7 @@ function Sidebar() {
       !chatAlreadyExists(input) &&
       input !== user.email
     ) {
-      //We need to add the chat into the DB 'chats' collection
-      addDoc(collection(db, "chats"), {
+      db.collection("chats").add({
         users: [user.email, input],
       });
     }
@@ -47,7 +43,7 @@ function Sidebar() {
   return (
     <Container>
       <Header>
-        <UserAvatar src={user.photoURL} onClick={() => signOut(auth)} />
+        <UserAvatar src={user.photoURL} onClick={() => auth.signOut()} />
         <IconsContainer>
           <IconButton>
             <ChatIcon />
